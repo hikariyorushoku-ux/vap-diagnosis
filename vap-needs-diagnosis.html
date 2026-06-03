@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基本的欲求バランス診断 | VAP</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A96E;--gold-light:#E8D5B0;--gold-dark:#9A7A45;--dark:#0D1F0F;--dark2:#162A18;--dark3:#1E3520;--cream:#FAF6EF;--text-light:#7A6A55;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;overflow-x:hidden;}
+.bg-texture{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(201,169,110,0.08) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 90%,rgba(201,169,110,0.06) 0%,transparent 60%),linear-gradient(160deg,#0D1F0F 0%,#162A18 50%,#0D1F0F 100%);}
+.bg-texture::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23C9A96E' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
+#app{position:relative;z-index:1;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+#screen-top{align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
+.logo-badge{display:inline-block;border:1px solid var(--gold);padding:6px 20px;font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:13px;letter-spacing:3px;margin-bottom:24px;}
+.main-title{font-family:'Noto Serif JP',serif;font-size:clamp(28px,7vw,48px);font-weight:600;line-height:1.3;letter-spacing:0.05em;background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+.sub-title{font-size:14px;color:var(--text-light);letter-spacing:0.1em;font-weight:300;}
+.divider-gold{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:32px auto;}
+.intro-text{max-width:500px;margin:0 auto 40px;font-size:14px;line-height:2;color:rgba(250,246,239,0.75);font-weight:300;}
+.five-needs-preview{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;}
+.need-badge{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.need-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid;}
+.need-icon.survival{background:rgba(224,123,106,0.15);border-color:rgba(224,123,106,0.4);}
+.need-icon.love{background:rgba(201,107,154,0.15);border-color:rgba(201,107,154,0.4);}
+.need-icon.power{background:rgba(123,139,201,0.15);border-color:rgba(123,139,201,0.4);}
+.need-icon.freedom{background:rgba(106,201,168,0.15);border-color:rgba(106,201,168,0.4);}
+.need-icon.fun{background:rgba(201,184,106,0.15);border-color:rgba(201,184,106,0.4);}
+.need-label{font-size:11px;color:var(--text-light);}
+.info-row{display:flex;gap:24px;justify-content:center;margin-bottom:48px;flex-wrap:wrap;}
+.info-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-light);}
+.info-item span{color:var(--gold-light);}
+.btn-start{display:inline-block;padding:18px 56px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--dark);font-family:'Noto Serif JP',serif;font-size:16px;font-weight:600;letter-spacing:0.15em;border:none;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,169,110,0.3);}
+.q-header{padding:16px 24px;border-bottom:1px solid rgba(201,169,110,0.15);display:flex;align-items:center;justify-content:space-between;background:rgba(20,40,22,0.8);backdrop-filter:blur(10px);position:sticky;top:0;z-index:10;}
+.q-logo{font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:14px;}
+.q-counter{font-size:12px;color:var(--text-light);}
+.q-counter strong{color:var(--gold);}
+.progress-bar-wrap{height:3px;background:rgba(201,169,110,0.15);}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width 0.4s ease;}
+.q-body{flex:1;padding:36px 20px 60px;max-width:640px;margin:0 auto;width:100%;}
+.q-category-tag{display:inline-flex;align-items:center;gap:8px;padding:4px 14px;border:1px solid;font-size:11px;letter-spacing:0.1em;margin-bottom:8px;border-radius:2px;}
+.q-sub-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border:1px solid rgba(201,169,110,0.2);font-size:10px;color:var(--text-light);border-radius:2px;margin-bottom:16px;margin-left:8px;}
+.q-section-label{font-size:11px;color:var(--text-light);margin-bottom:20px;padding:8px 12px;background:rgba(255,255,255,0.03);border-left:2px solid rgba(201,169,110,0.3);}
+.q-text{font-family:'Noto Serif JP',serif;font-size:clamp(17px,4vw,22px);line-height:1.75;font-weight:400;margin-bottom:32px;letter-spacing:0.03em;}
+.answer-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.scale-btn{aspect-ratio:1;background:rgba(20,40,22,0.6);border:1px solid rgba(201,169,110,0.2);color:var(--cream);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;}
+.scale-btn:hover,.scale-btn.selected{background:rgba(201,169,110,0.15);border-color:var(--gold);}
+.scale-btn .scale-num{font-size:22px;font-weight:500;}
+.scale-btn .scale-label{font-size:9px;color:var(--text-light);text-align:center;line-height:1.3;}
+.q-nav{display:flex;gap:12px;margin-top:40px;padding-top:20px;border-top:1px solid rgba(201,169,110,0.1);}
+.btn-prev{padding:12px 20px;background:transparent;border:1px solid rgba(201,169,110,0.3);color:var(--text-light);font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.2s;}
+.btn-prev:hover{border-color:var(--gold);color:var(--gold);}
+.btn-next{flex:1;padding:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border:none;color:var(--dark);font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Serif JP',serif;letter-spacing:0.1em;transition:opacity 0.2s;}
+.btn-next:disabled{opacity:0.3;cursor:not-allowed;}
+.r-header{padding:20px 24px;text-align:center;border-bottom:1px solid rgba(201,169,110,0.15);}
+.r-header .logo{font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:16px;}
+.r-body{padding:32px 20px 60px;max-width:700px;margin:0 auto;}
+.r-headline{text-align:center;margin-bottom:36px;}
+.r-headline h2{font-family:'Noto Serif JP',serif;font-size:clamp(22px,5vw,30px);font-weight:600;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.r-headline p{font-size:13px;color:var(--text-light);}
+.chart-wrap{background:rgba(20,40,22,0.5);border:1px solid rgba(201,169,110,0.2);padding:24px;margin-bottom:28px;display:flex;flex-direction:column;align-items:center;}
+.chart-title{font-size:11px;letter-spacing:0.15em;color:var(--text-light);margin-bottom:16px;text-align:center;}
+#radarCanvas{max-width:320px;width:100%;}
+.scores-section{margin-bottom:28px;}
+.scores-title{font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:0.1em;color:var(--gold);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(201,169,110,0.2);}
+.score-card{background:rgba(20,40,22,0.4);border:1px solid rgba(201,169,110,0.15);padding:20px;margin-bottom:12px;}
+.score-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.score-card-left{display:flex;align-items:center;gap:12px;}
+.score-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid;flex-shrink:0;}
+.score-name{font-family:'Noto Serif JP',serif;font-size:15px;}
+.score-nums{text-align:right;}
+.score-num-big{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);line-height:1;}
+.score-num-sub{font-size:11px;color:var(--text-light);margin-top:2px;}
+.bar-wrap{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin-bottom:4px;}
+.bar-fill{height:100%;border-radius:3px;transition:width 1.2s ease;}
+.bar-sat-wrap{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;}
+.bar-sat-fill{height:100%;border-radius:2px;background:rgba(106,201,168,0.6);transition:width 1.2s ease;}
+.score-comment{margin-top:12px;font-size:13px;line-height:1.85;color:rgba(250,246,239,0.7);padding-top:12px;border-top:1px solid rgba(201,169,110,0.1);}
+.sub-items-wrap{margin-top:16px;padding-top:16px;border-top:1px solid rgba(201,169,110,0.1);}
+.sub-items-title{font-size:10px;letter-spacing:0.15em;color:var(--text-light);margin-bottom:12px;}
+.sub-item{margin-bottom:10px;}
+.sub-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.sub-item-name{font-size:12px;color:rgba(250,246,239,0.8);}
+.sub-item-score{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold);}
+.sub-bar-wrap{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;}
+.sub-bar-fill{height:100%;border-radius:2px;transition:width 1.4s ease;}
+.sub-sat-wrap{height:3px;background:rgba(255,255,255,0.04);border-radius:2px;margin-top:2px;}
+.sub-sat-fill{height:100%;border-radius:2px;background:rgba(106,201,168,0.4);transition:width 1.4s ease;}
+.sub-legend{display:flex;gap:12px;margin-top:8px;margin-bottom:4px;}
+.sub-legend span{font-size:9px;color:var(--text-light);display:flex;align-items:center;gap:4px;}
+.sub-legend span::before{content:'';display:inline-block;width:16px;height:3px;border-radius:2px;}
+.sub-legend .leg-str::before{background:rgba(201,169,110,0.7);}
+.sub-legend .leg-sat::before{background:rgba(106,201,168,0.5);}
+.highlight-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;}
+@media(max-width:480px){.highlight-cards{grid-template-columns:1fr;}}
+.highlight-card{padding:20px;border:1px solid;}
+.highlight-card.highest{border-color:var(--gold);background:rgba(201,169,110,0.08);}
+.highlight-card.lowest{border-color:rgba(201,169,110,0.2);background:rgba(20,40,22,0.4);}
+.highlight-tag{font-size:10px;letter-spacing:0.15em;margin-bottom:8px;}
+.highlight-card.highest .highlight-tag{color:var(--gold);}
+.highlight-card.lowest .highlight-tag{color:var(--text-light);}
+.highlight-name{font-family:'Noto Serif JP',serif;font-size:18px;margin-bottom:8px;}
+.highlight-desc{font-size:12px;line-height:1.7;color:rgba(250,246,239,0.65);}
+.result-message{background:linear-gradient(135deg,rgba(201,169,110,0.1),rgba(20,40,22,0.6));border:1px solid rgba(201,169,110,0.3);padding:24px;margin-bottom:28px;}
+.result-message h3{font-family:'Noto Serif JP',serif;font-size:15px;color:var(--gold-light);margin-bottom:12px;}
+.result-message p{font-size:13px;line-height:2;color:rgba(250,246,239,0.8);}
+.btn-retry{width:100%;padding:14px;background:transparent;border:1px solid rgba(201,169,110,0.3);color:var(--text-light);font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;margin-bottom:12px;}
+.btn-retry:hover{border-color:var(--gold);color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="bg-texture"></div>
+<div id="app">
+<div id="screen-top" class="screen active">
+  <div>
+    <div class="logo-badge">VAP Coaching Program</div>
+    <h1 class="main-title">基本的欲求<br>バランス診断</h1>
+
+  </div>
+  <div class="divider-gold"></div>
+  <p class="intro-text">あなたが生まれつき持っている5つの欲求を測ります。どれくらい強く持っているか、今どのくらい満たされているかが一目でわかります。</p>
+  <div class="five-needs-preview">
+    <div class="need-badge"><div class="need-icon survival">🏠</div><span class="need-label">生存の欲求</span></div>
+    <div class="need-badge"><div class="need-icon love">💕</div><span class="need-label">愛・所属</span></div>
+    <div class="need-badge"><div class="need-icon power">⭐</div><span class="need-label">力の欲求</span></div>
+    <div class="need-badge"><div class="need-icon freedom">🕊️</div><span class="need-label">自由の欲求</span></div>
+    <div class="need-badge"><div class="need-icon fun">🎵</div><span class="need-label">楽しみの欲求</span></div>
+  </div>
+  <div class="info-row">
+    <div class="info-item"><span>📋</span> 全52問</div>
+    <div class="info-item"><span>⏱️</span> 約15〜20分</div>
+    <div class="info-item"><span>📊</span> サブ項目まで詳しく分析</div>
+  </div>
+  <button class="btn-start" onclick="startDiagnosis()">診断をはじめる</button>
+</div>
+
+<div id="screen-question" class="screen">
+  <div class="q-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="q-logo">VAP</span>
+      <span class="q-counter">Question <strong id="q-num">1</strong> / <span id="q-total">52</span></span>
+    </div>
+    <span style="font-size:11px;color:var(--text-light)" id="q-cat-small"></span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="q-body">
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:20px;">
+      <div class="q-category-tag" id="q-category-tag"></div>
+      <div class="q-sub-tag" id="q-sub-tag"></div>
+    </div>
+    <div class="q-section-label" id="q-section-label"></div>
+    <p class="q-text" id="q-text"></p>
+    <div id="q-answers"></div>
+    <div class="q-nav">
+      <button class="btn-prev" id="btn-prev" onclick="prevQuestion()">← 戻る</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>次へ →</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-result" class="screen">
+  <div class="r-header"><div class="logo">VAP — Basic Needs Survey</div></div>
+  <div class="r-body">
+    <div class="r-headline">
+      <h2>あなたの欲求バランス</h2>
+      <p>5つの欲求とサブ項目の詳細スコア</p>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">— NEEDS BALANCE RADAR —</div>
+      <canvas id="radarCanvas" width="320" height="320"></canvas>
+    </div>
+    <div class="highlight-cards" id="highlight-cards"></div>
+    <div class="scores-section">
+      <div class="scores-title">▼ 各欲求の詳細スコア（サブ項目つき）</div>
+      <div id="score-cards"></div>
+    </div>
+    <div class="result-message" id="result-message"></div>
+    <button class="btn-retry" onclick="restartDiagnosis()">🔄 もう一度やってみる</button>
+  </div>
+</div>
+</div>
+
+<script>
+const CATEGORIES = {
+  survival:{ label:'生存の欲求', emoji:'🏠', color:'#E07B6A', ca:'rgba(224,123,106,', desc:'安全・安心・健康・お金の安定への欲求',
+    subs:{ anzen:{label:'安全・安定'}, kenkou:{label:'健康'} } },
+  love:    { label:'愛・所属の欲求', emoji:'💕', color:'#C96B9A', ca:'rgba(201,107,154,', desc:'人と深くつながり、愛し愛されたいという欲求',
+    subs:{ ai:{label:'愛'}, shozoku:{label:'所属'} } },
+  power:   { label:'力の欲求', emoji:'⭐', color:'#7B8BC9', ca:'rgba(123,139,201,', desc:'結果を出して、認められたい・役に立ちたいという欲求',
+    subs:{ tassei:{label:'達成'}, shounin:{label:'承認'}, kouken:{label:'貢献'}, kyousou:{label:'競争'} } },
+  freedom: { label:'自由の欲求', emoji:'🕊️', color:'#6AC9A8', ca:'rgba(106,201,168,', desc:'自分らしく、縛られずに生きたいという欲求',
+    subs:{ kaihou:{label:'解放'}, henka:{label:'変化'}, jibunrashisa:{label:'自分らしさ'} } },
+  fun:     { label:'楽しみの欲求', emoji:'🎵', color:'#C9B86A', ca:'rgba(201,184,106,', desc:'学んだり笑ったり、好奇心を満たしたいという欲求',
+    subs:{ humor:{label:'ユーモア'}, koukishin:{label:'好奇心'}, gakushu:{label:'学習・成長'}, souzou:{label:'創造性'} } }
+};
+
+// 本家の文体を参考に、短くシンプルな表現にリライト
+// section: desire=欲求の強さ / focus=注力度 / reality=現実の充足度
+// 各サブ項目に3セクション×2問ずつ程度 → 合計52問
+const QUESTIONS = [
+  // ===== 生存の欲求 =====
+  // 安全・安定
+  {cat:'survival',sub:'anzen',sec:'desire', text:'生活が安定していないと、強い不安を感じるタイプだ。'},
+  {cat:'survival',sub:'anzen',sec:'desire', text:'先のことをきちんと計画して、リスクに備えておきたいタイプだ。'},
+  {cat:'survival',sub:'anzen',sec:'focus',  text:'収入や貯金が安定するよう、意識して行動している。'},
+  {cat:'survival',sub:'anzen',sec:'focus',  text:'住む場所や生活環境を、きちんと整えるよう心がけている。'},
+  {cat:'survival',sub:'anzen',sec:'reality',text:'今の生活は、お金や住まいの面で安定していると感じる。'},
+  {cat:'survival',sub:'anzen',sec:'reality',text:'今の暮らしに、安心感がある。'},
+  // 健康
+  {cat:'survival',sub:'kenkou',sec:'desire', text:'食事・睡眠・体の調子は、生活の中でとても大事だと思うタイプだ。'},
+  {cat:'survival',sub:'kenkou',sec:'desire', text:'体の不調や病気に、人より不安を感じやすいタイプだ。'},
+  {cat:'survival',sub:'kenkou',sec:'focus',  text:'体に良い生活リズムを保つよう、意識している。'},
+  {cat:'survival',sub:'kenkou',sec:'focus',  text:'しっかり休みを取るようにしている。'},
+  {cat:'survival',sub:'kenkou',sec:'reality',text:'今の体の調子（睡眠・体力・疲れ具合）に満足している。'},
+  {cat:'survival',sub:'kenkou',sec:'reality',text:'毎日の生活の中に、元気ややる気を感じられる。'},
+
+  // ===== 愛・所属の欲求 =====
+  // 愛
+  {cat:'love',sub:'ai',sec:'desire', text:'誰かに「必要とされている」と感じることが、とても大切なタイプだ。'},
+  {cat:'love',sub:'ai',sec:'desire', text:'大切な人との関係が壊れることを、強く恐れるタイプだ。'},
+  {cat:'love',sub:'ai',sec:'focus',  text:'大切な人が喜んでくれることを、常に考えて行動している。'},
+  {cat:'love',sub:'ai',sec:'focus',  text:'人から頼まれたことは、できる限り断らないようにしている。'},
+  {cat:'love',sub:'ai',sec:'reality',text:'今、自分は誰かに愛されている・大切にされていると感じる。'},
+  {cat:'love',sub:'ai',sec:'reality',text:'今の恋人・家族・親しい人との関係に満足している。'},
+  // 所属
+  {cat:'love',sub:'shozoku',sec:'desire', text:'「このグループや仲間の一員だ」という感覚が、自分には大切なタイプだ。'},
+  {cat:'love',sub:'shozoku',sec:'desire', text:'一人でいる時間が長くなると、寂しさや物足りなさを感じるタイプだ。'},
+  {cat:'love',sub:'shozoku',sec:'focus',  text:'仲間やチームのためになることは、積極的に動くようにしている。'},
+  {cat:'love',sub:'shozoku',sec:'focus',  text:'人との関係を広げていくよう、意識して行動している。'},
+  {cat:'love',sub:'shozoku',sec:'reality',text:'今の友人・職場・コミュニティとのつながりに満足している。'},
+  {cat:'love',sub:'shozoku',sec:'reality',text:'「自分はここに受け入れられている」と感じられる場所がある。'},
+
+  // ===== 力の欲求 =====
+  // 達成
+  {cat:'power',sub:'tassei',sec:'desire', text:'目標を達成したとき、他の何より大きな喜びを感じるタイプだ。'},
+  {cat:'power',sub:'tassei',sec:'desire', text:'常にもっと上を目指して取り組みたいタイプだ。'},
+  {cat:'power',sub:'tassei',sec:'focus',  text:'目標に向かって、毎日意識して取り組んでいる。'},
+  {cat:'power',sub:'tassei',sec:'focus',  text:'仕事は最後までやり切るよう心がけている。'},
+  {cat:'power',sub:'tassei',sec:'reality',text:'今、自分はしっかり結果を出せていると感じる。'},
+  {cat:'power',sub:'tassei',sec:'reality',text:'自分が成長・前進できているという実感が今ある。'},
+  // 承認
+  {cat:'power',sub:'shounin',sec:'desire', text:'人から認められたり、評価されることが大きなモチベーションになるタイプだ。'},
+  {cat:'power',sub:'shounin',sec:'desire', text:'自分の頑張りが正当に見てもらえないと、強く不満を感じるタイプだ。'},
+  {cat:'power',sub:'shounin',sec:'focus',  text:'自分の実力や成果を、多くの人に知ってもらえるよう動いている。'},
+  {cat:'power',sub:'shounin',sec:'focus',  text:'人から認めてもらえるよう、日々努力している。'},
+  {cat:'power',sub:'shounin',sec:'reality',text:'今、周りから自分の努力や成果を認めてもらえていると感じる。'},
+  {cat:'power',sub:'shounin',sec:'reality',text:'今のキャリアや仕事の方向性に満足している。'},
+  // 貢献
+  {cat:'power',sub:'kouken',sec:'desire', text:'人の役に立てることに、強い喜びを感じるタイプだ。'},
+  {cat:'power',sub:'kouken',sec:'desire', text:'自分の存在が誰かの助けになっていると感じることが大切なタイプだ。'},
+  {cat:'power',sub:'kouken',sec:'focus',  text:'人が困っていたら、進んで助けるようにしている。'},
+  {cat:'power',sub:'kouken',sec:'focus',  text:'人が欲しがっている情報や助けは、惜しまず提供するようにしている。'},
+  {cat:'power',sub:'kouken',sec:'reality',text:'今、誰かの役に立てているという実感がある。'},
+  {cat:'power',sub:'kouken',sec:'reality',text:'今、自分は仲間やチームに貢献できていると感じる。'},
+  // 競争
+  {cat:'power',sub:'kyousou',sec:'desire', text:'勝負事では負けたくない・誰よりも優れていたいと思うタイプだ。'},
+  {cat:'power',sub:'kyousou',sec:'desire', text:'何事においても一番を狙いたいタイプだ。'},
+  {cat:'power',sub:'kyousou',sec:'focus',  text:'ライバルや周りに負けないよう、意識して努力している。'},
+  {cat:'power',sub:'kyousou',sec:'focus',  text:'人と比べて優れた能力を持てるよう、磨き続けている。'},
+  {cat:'power',sub:'kyousou',sec:'reality',text:'今、自分は周りと比べて十分な実力・結果が出せていると感じる。'},
+  {cat:'power',sub:'kyousou',sec:'reality',text:'勝負や競争の場面で、今の自分は戦えていると感じる。'},
+
+  // ===== 自由の欲求 =====
+  // 解放
+  {cat:'freedom',sub:'kaihou',sec:'desire', text:'細かく管理されたり、指示通りに動かされることが苦手なタイプだ。'},
+  {cat:'freedom',sub:'kaihou',sec:'desire', text:'ルールや決まりごとは、少ない方がいいと思うタイプだ。'},
+  {cat:'freedom',sub:'kaihou',sec:'focus',  text:'人に振り回されないよう、自分のペースを守るようにしている。'},
+  {cat:'freedom',sub:'kaihou',sec:'focus',  text:'やりたくないことや違和感のあることは、断れるよう動いている。'},
+  {cat:'freedom',sub:'kaihou',sec:'reality',text:'今、特定の人や状況に縛られていないと感じる。'},
+  {cat:'freedom',sub:'kaihou',sec:'reality',text:'今、仕事のスケジュールや働き方を自分で決められている。'},
+  // 変化
+  {cat:'freedom',sub:'henka',sec:'desire', text:'同じことの繰り返しより、変化や新しいことの方が好きなタイプだ。'},
+  {cat:'freedom',sub:'henka',sec:'desire', text:'うまくいかないときは、すぐにやり方を変えたくなるタイプだ。'},
+  {cat:'freedom',sub:'henka',sec:'focus',  text:'新しいことにどんどんチャレンジするよう、意識している。'},
+  {cat:'freedom',sub:'henka',sec:'focus',  text:'やり方にこだわらず、より良い方法を常に探すようにしている。'},
+  {cat:'freedom',sub:'henka',sec:'reality',text:'今の生活の中に、ちょうどよい変化や刺激がある。'},
+  {cat:'freedom',sub:'henka',sec:'reality',text:'今、同じことの繰り返しになっていないと感じる。'},
+  // 自分らしさ
+  {cat:'freedom',sub:'jibunrashisa',sec:'desire', text:'「自分らしくない」と感じる場所や役割を続けることが、とても苦手なタイプだ。'},
+  {cat:'freedom',sub:'jibunrashisa',sec:'desire', text:'人と同じでなくていい・自分らしくいたいと強く思うタイプだ。'},
+  {cat:'freedom',sub:'jibunrashisa',sec:'focus',  text:'人の考えより、自分のやり方や価値観を大切にするようにしている。'},
+  {cat:'freedom',sub:'jibunrashisa',sec:'focus',  text:'反対されても、自分が正しいと思う方法で進むよう心がけている。'},
+  {cat:'freedom',sub:'jibunrashisa',sec:'reality',text:'今、自分らしく生きられていると感じる。'},
+  {cat:'freedom',sub:'jibunrashisa',sec:'reality',text:'今、人の意見に流されず、自分の選択ができていると感じる。'},
+
+  // ===== 楽しみの欲求 =====
+  // ユーモア
+  {cat:'fun',sub:'humor',sec:'desire', text:'笑いや冗談を楽しむことが、毎日の生活に欠かせないタイプだ。'},
+  {cat:'fun',sub:'humor',sec:'desire', text:'場の雰囲気を和ませたり、周りを笑わせることに喜びを感じるタイプだ。'},
+  {cat:'fun',sub:'humor',sec:'focus',  text:'会話の中に笑いや冗談を取り入れるよう、意識している。'},
+  {cat:'fun',sub:'humor',sec:'focus',  text:'周りの人が楽しいと思えるよう、雰囲気づくりに気を配っている。'},
+  {cat:'fun',sub:'humor',sec:'reality',text:'今の生活の中で、よく笑えている・軽やかに過ごせていると感じる。'},
+  {cat:'fun',sub:'humor',sec:'reality',text:'今、周りの人と楽しい時間を過ごせていると感じる。'},
+  // 好奇心
+  {cat:'fun',sub:'koukishin',sec:'desire', text:'興味のあることにはどんどん首を突っ込みたくなるタイプだ。'},
+  {cat:'fun',sub:'koukishin',sec:'desire', text:'「面白い！もっと知りたい！」という気持ちが行動の原動力になるタイプだ。'},
+  {cat:'fun',sub:'koukishin',sec:'focus',  text:'新しい考えやアイデアには、すぐに飛びつくようにしている。'},
+  {cat:'fun',sub:'koukishin',sec:'focus',  text:'幅広い知識や興味を持てるよう、意識して動いている。'},
+  {cat:'fun',sub:'koukishin',sec:'reality',text:'今の生活の中で、好奇心が刺激される場面が十分にある。'},
+  {cat:'fun',sub:'koukishin',sec:'reality',text:'今、新しいことに積極的にチャレンジできていると感じる。'},
+  // 学習・成長
+  {cat:'fun',sub:'gakushu',sec:'desire', text:'新しいことを学んだり、知識やスキルを増やすことが好きなタイプだ。'},
+  {cat:'fun',sub:'gakushu',sec:'desire', text:'昨日より今日、少しでも成長したいと思うタイプだ。'},
+  {cat:'fun',sub:'gakushu',sec:'focus',  text:'自分のためになる本を読んだり、勉強する時間を意識的に作っている。'},
+  {cat:'fun',sub:'gakushu',sec:'focus',  text:'仕事でも遊びでも、楽しみながら成長できるよう心がけている。'},
+  {cat:'fun',sub:'gakushu',sec:'reality',text:'今、学びや成長を感じられる機会が十分にある。'},
+  {cat:'fun',sub:'gakushu',sec:'reality',text:'今、自分はちゃんと成長できていると感じる。'},
+  // 創造性
+  {cat:'fun',sub:'souzou',sec:'desire', text:'自分で工夫したり、人と違うやり方で物事を進めたいタイプだ。'},
+  {cat:'fun',sub:'souzou',sec:'desire', text:'型にはまらず、アイデアや発想を活かした仕事が好きなタイプだ。'},
+  {cat:'fun',sub:'souzou',sec:'focus',  text:'いつも「もっと良いやり方はないか」を考えるようにしている。'},
+  {cat:'fun',sub:'souzou',sec:'focus',  text:'ユニークな発想や解決策を出せるよう、柔軟に考えるよう心がけている。'},
+  {cat:'fun',sub:'souzou',sec:'reality',text:'今、自分らしいやり方や工夫を活かせていると感じる。'},
+  {cat:'fun',sub:'souzou',sec:'reality',text:'今、アイデアや創造性を発揮できる場面がある。'},
+];
+
+const TOTAL = QUESTIONS.length;
+
+const SEC_LABELS = {
+  desire:  '📍 自分の「性格・タイプ」として、どのくらい当てはまりますか？',
+  focus:   '📍 今、どのくらい意識して取り組んでいますか？',
+  reality: '📍 今の自分の「現状・実感」として、どのくらい当てはまりますか？'
+};
+
+const COMMENTS = {
+  survival:{str_h:'安心・安定・健康をとても強く求めるタイプです。堅実さと慎重さがあなたの大きな強みです。',str_m:'安定を大切にしつつ、変化にも柔軟に対応できるバランスの良さがあります。',str_l:'安定よりも変化や挑戦を好む行動力タイプです。',sat_h:'今の生活に安心感と安定感を十分に感じられています。',sat_l:'今は生活の安定や安心感が少し足りていないかもしれません。'},
+  love:{str_h:'人とのつながりや愛情をとても強く求めるタイプです。共感力が高く、関係性の中で本来の力が出ます。',str_m:'人との関係を大切にしながら、一人の時間とのバランスも自然に取れます。',str_l:'独立心が強く、一人でいることにも安心感を感じられるタイプです。',sat_h:'今の人間関係に深い満足を感じられています。',sat_l:'今は人とのつながりに少し物足りなさを感じているかもしれません。'},
+  power:{str_h:'成長・達成・認められることへの欲求がとても強いタイプです。向上心と行動力が高いです。',str_m:'認められたい・成長したい気持ちを持ちながら、プロセスを楽しむ余裕もあります。',str_l:'競争や評価より、自分の内側の満足を大切にするタイプです。',sat_h:'今は自分の力を十分に発揮できていると感じています。',sat_l:'今は自分の力をまだ出し切れていないと感じているかもしれません。'},
+  freedom:{str_h:'自由・自分らしさへの欲求がとても強いタイプです。独自性が高く、型にはまらない生き方に強みがあります。',str_m:'自由を大切にしながら、必要に応じたルールにも柔軟に対応できます。',str_l:'秩序ある環境の中で安心感を感じ、力を発揮できるタイプです。',sat_h:'今は十分に「自分らしく」生きられている実感があります。',sat_l:'今は「本当の自分」で生きられていないと感じることがあるかもしれません。'},
+  fun:{str_h:'学び・笑い・好奇心への欲求がとても強いタイプです。エネルギーが高く、周りを巻き込む魅力があります。',str_m:'楽しさを大切にしながら、真剣に取り組む場面でもスイッチが入るバランス力があります。',str_l:'楽しさより目的や意味を重視して動くタイプです。',sat_h:'今の生活の中に十分な楽しさと喜びがあります。',sat_l:'今は楽しさや好奇心が少し不足しているかもしれません。'}
+};
+
+let currentQ=0, answers=new Array(TOTAL).fill(null);
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function startDiagnosis(){currentQ=0;answers=new Array(TOTAL).fill(null);document.getElementById('q-total').textContent=TOTAL;renderQuestion();showScreen('screen-question');}
+function restartDiagnosis(){showScreen('screen-top');}
+
+function renderQuestion(){
+  const q=QUESTIONS[currentQ];
+  const cat=CATEGORIES[q.cat];
+  const sub=cat.subs[q.sub];
+  document.getElementById('q-num').textContent=currentQ+1;
+  document.getElementById('q-cat-small').textContent=cat.label+' › '+sub.label;
+  document.getElementById('progress-fill').style.width=(currentQ/TOTAL*100)+'%';
+  const tag=document.getElementById('q-category-tag');
+  tag.innerHTML=`<span style="font-size:14px">${cat.emoji}</span><span style="color:${cat.color};letter-spacing:0.08em">${cat.label}</span>`;
+  tag.style.borderColor=cat.color+'60';
+  document.getElementById('q-sub-tag').textContent='› '+sub.label;
+  document.getElementById('q-section-label').textContent=SEC_LABELS[q.sec];
+  document.getElementById('q-text').textContent=q.text;
+  const el=document.getElementById('q-answers');
+  el.innerHTML='';
+  const grid=document.createElement('div');grid.className='answer-scale';
+  [['1','全く\nそうでない'],['2','あまり\nそうでない'],['3','どちら\nとも言えない'],['4','やや\nそう思う'],['5','とても\nそう思う']].forEach(([n,l],i)=>{
+    const btn=document.createElement('button');
+    btn.className='scale-btn'+(answers[currentQ]===i+1?' selected':'');
+    btn.innerHTML=`<span class="scale-num">${n}</span><span class="scale-label">${l.replace('\n','<br>')}</span>`;
+    btn.onclick=()=>selectAnswer(i+1);
+    grid.appendChild(btn);
+  });
+  el.appendChild(grid);
+  document.getElementById('btn-prev').style.display=currentQ===0?'none':'';
+  document.getElementById('btn-next').disabled=answers[currentQ]===null;
+  document.getElementById('btn-next').textContent=currentQ===TOTAL-1?'結果を見る ✨':'次へ →';
+}
+
+function selectAnswer(val){
+  answers[currentQ]=val;
+  document.getElementById('btn-next').disabled=false;
+  document.querySelectorAll('.scale-btn').forEach((b,i)=>b.classList.toggle('selected',i+1===val));
+}
+function nextQuestion(){if(answers[currentQ]===null)return;if(currentQ===TOTAL-1){showResult();return;}currentQ++;renderQuestion();}
+function prevQuestion(){if(currentQ>0){currentQ--;renderQuestion();}}
+
+function calcScores(){
+  const scores={};
+  Object.entries(CATEGORIES).forEach(([cat,cdata])=>{
+    const subScores={};
+    Object.keys(cdata.subs).forEach(subKey=>{
+      const qs=QUESTIONS.map((q,i)=>({q,i})).filter(({q})=>q.cat===cat&&q.sub===subKey);
+      const desireQs=qs.filter(({q})=>q.sec==='desire');
+      const focusQs=qs.filter(({q})=>q.sec==='focus');
+      const realityQs=qs.filter(({q})=>q.sec==='reality');
+      const avg=(arr)=>arr.length?Math.round(arr.reduce((s,{i})=>s+(answers[i]||0),0)/(arr.length*5)*100):0;
+      subScores[subKey]={
+        strength: Math.round((avg(desireQs)+avg(focusQs))/2),
+        satisfy: avg(realityQs)
+      };
+    });
+    const subVals=Object.values(subScores);
+    scores[cat]={
+      strength:Math.round(subVals.reduce((s,v)=>s+v.strength,0)/subVals.length),
+      satisfy:Math.round(subVals.reduce((s,v)=>s+v.satisfy,0)/subVals.length),
+      subs:subScores
+    };
+  });
+  return scores;
+}
+
+function showResult(){
+  showScreen('screen-result');
+  const scores=calcScores();
+  renderRadar(scores);
+  renderHighlights(scores);
+  renderScoreCards(scores);
+  renderMessage(scores);
+}
+
+function renderRadar(scores){
+  const canvas=document.getElementById('radarCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=Math.min(W,H)/2-50;
+  const cats=Object.keys(CATEGORIES),N=cats.length;
+  ctx.clearRect(0,0,W,H);
+  for(let ring=1;ring<=5;ring++){const r=R*ring/5;ctx.beginPath();cats.forEach((c,i)=>{const a=(i/N)*Math.PI*2-Math.PI/2;i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));});ctx.closePath();ctx.strokeStyle='rgba(201,169,110,0.12)';ctx.lineWidth=1;ctx.stroke();}
+  cats.forEach((c,i)=>{const a=(i/N)*Math.PI*2-Math.PI/2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));ctx.strokeStyle='rgba(201,169,110,0.2)';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=CATEGORIES[c].color;ctx.font='14px "Noto Sans JP"';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(CATEGORIES[c].emoji,cx+(R+28)*Math.cos(a),cy+(R+28)*Math.sin(a));});
+  ctx.beginPath();cats.forEach((c,i)=>{const a=(i/N)*Math.PI*2-Math.PI/2,r=R*scores[c].strength/100;i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));});ctx.closePath();ctx.fillStyle='rgba(201,169,110,0.13)';ctx.fill();ctx.strokeStyle='rgba(201,169,110,0.7)';ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke();
+  ctx.beginPath();cats.forEach((c,i)=>{const a=(i/N)*Math.PI*2-Math.PI/2,r=R*scores[c].satisfy/100;i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));});ctx.closePath();ctx.fillStyle='rgba(106,201,168,0.1)';ctx.fill();ctx.strokeStyle='rgba(106,201,168,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+  const ly=H-16;ctx.strokeStyle='rgba(201,169,110,0.8)';ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(cx-90,ly);ctx.lineTo(cx-60,ly);ctx.stroke();ctx.fillStyle='rgba(250,246,239,0.6)';ctx.font='10px "Noto Sans JP"';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('欲求の強さ',cx-56,ly);ctx.strokeStyle='rgba(106,201,168,0.7)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx+10,ly);ctx.lineTo(cx+40,ly);ctx.stroke();ctx.setLineDash([]);ctx.fillText('今の充足度',cx+44,ly);
+}
+
+function renderHighlights(scores){
+  const sorted=Object.entries(scores).sort((a,b)=>b[1].strength-a[1].strength);
+  const [hk,hv]=sorted[0],[lk,lv]=sorted[4];
+  const ch=CATEGORIES[hk],cl=CATEGORIES[lk];
+  document.getElementById('highlight-cards').innerHTML=`
+    <div class="highlight-card highest"><div class="highlight-tag">▲ 最も強い欲求</div><div class="highlight-name">${ch.emoji} ${ch.label}</div><div style="font-family:'Playfair Display',serif;font-size:32px;color:var(--gold);margin-bottom:8px">${hv.strength}<span style="font-size:13px;color:var(--text-light)">%</span></div><div class="highlight-desc">${ch.desc}</div></div>
+    <div class="highlight-card lowest"><div class="highlight-tag">▽ 最も低い欲求</div><div class="highlight-name">${cl.emoji} ${cl.label}</div><div style="font-family:'Playfair Display',serif;font-size:32px;color:var(--text-light);margin-bottom:8px">${lv.strength}<span style="font-size:13px;color:var(--text-light)">%</span></div><div class="highlight-desc">${cl.desc}</div></div>`;
+}
+
+function renderScoreCards(scores){
+  const container=document.getElementById('score-cards');container.innerHTML='';
+  Object.entries(scores).forEach(([cat,sc])=>{
+    const c=CATEGORIES[cat],cm=COMMENTS[cat];
+    const strC=sc.strength>=70?cm.str_h:sc.strength>=40?cm.str_m:cm.str_l;
+    const satC=sc.satisfy>=60?cm.sat_h:cm.sat_l;
+    const gap=sc.strength-sc.satisfy;
+    const gapLabel=gap>25?'⚠️ 欲求と今の状態にギャップがあります':gap>10?'△ 少しギャップがあります':'✓ バランスが取れています';
+    const gapColor=gap>25?'#E07B6A':gap>10?'#C9B86A':'#6AC9A8';
+    const subEntries=Object.entries(c.subs);
+    const subLegend=`<div class="sub-legend"><span class="leg-str">欲求の強さ</span><span class="leg-sat">今の充足度</span></div>`;
+    const subItemsHtml=subEntries.map(([subKey,subData])=>{
+      const s=sc.subs[subKey];
+      const subGap=s.strength-s.satisfy;
+      const subIcon=subGap>25?'⚠️':subGap>10?'△':'✓';
+      return `<div class="sub-item"><div class="sub-item-header"><span class="sub-item-name">${subIcon} ${subData.label}</span><span class="sub-item-score">${s.strength}<span style="font-size:10px;color:var(--text-light)">%</span> <span style="font-size:10px;color:rgba(106,201,168,0.8)">/ ${s.satisfy}%</span></span></div><div class="sub-bar-wrap"><div class="sub-bar-fill" style="width:${s.strength}%;background:${c.color}99"></div></div><div class="sub-sat-wrap"><div class="sub-sat-fill" style="width:${s.satisfy}%"></div></div></div>`;
+    }).join('');
+    container.innerHTML+=`<div class="score-card"><div class="score-card-top"><div class="score-card-left"><div class="score-icon" style="background:${c.ca}0.15);border-color:${c.ca}0.4)">${c.emoji}</div><div class="score-name">${c.label}</div></div><div class="score-nums"><div class="score-num-big">${sc.strength}<span style="font-size:13px;color:var(--text-light)">%</span></div><div class="score-num-sub">充足度 ${sc.satisfy}%</div></div></div><div style="font-size:10px;color:var(--text-light);margin-bottom:4px">欲求の強さ</div><div class="bar-wrap"><div class="bar-fill" style="width:${sc.strength}%;background:linear-gradient(90deg,${c.ca}0.5),${c.color})"></div></div><div style="font-size:10px;color:var(--text-light);margin-bottom:4px;margin-top:8px">今の充足度</div><div class="bar-sat-wrap"><div class="bar-sat-fill" style="width:${sc.satisfy}%"></div></div><div style="font-size:11px;color:${gapColor};margin-top:8px">${gapLabel}</div><div class="score-comment">${strC}<br><br>💧 <strong>今の状態：</strong>${satC}</div><div class="sub-items-wrap"><div class="sub-items-title">— サブ項目の内訳 —</div>${subLegend}${subItemsHtml}</div></div>`;
+  });
+}
+
+function renderMessage(scores){
+  const sorted=Object.entries(scores).sort((a,b)=>(b[1].strength-b[1].satisfy)-(a[1].strength-a[1].satisfy));
+  const [topCat,topSc]=sorted[0];
+  const cat=CATEGORIES[topCat];
+  const gap=topSc.strength-topSc.satisfy;
+  let msg='';
+  if(gap>30)msg=`あなたは<strong>${cat.label}</strong>がとても強い欲求でありながら、今の生活ではまだ十分に満たされていない状態です。このギャップが、日々のモヤモヤやストレスの根っこになっている可能性があります。まずここを満たすことを意識してみましょう。`;
+  else if(gap>15)msg=`<strong>${cat.label}</strong>は強い欲求ですが、まだ完全には満たされていない部分があります。具体的にどんな行動が充足につながるかを考えると、日々の満足感が上がります。`;
+  else{const topStr=Object.entries(scores).sort((a,b)=>b[1].strength-a[1].strength)[0];msg=`あなたの<strong>${CATEGORIES[topStr[0]].label}</strong>は強く、今の生活でも比較的満たされています。全体的に欲求と現実のバランスが取れている状態です。サブ項目も見ながら、さらに細かく自分を知っていきましょう。`;}
+  document.getElementById('result-message').innerHTML=`<h3>📝 あなたへのメッセージ</h3><p>${msg}<br><br>VAP講座では、あなた自身の欲求パターンを深く理解した上で、より自分らしい接客・人間関係・仕事の作り方を一緒に考えていきます。</p>`;
+}
+</script>
+</body>
+</html>
